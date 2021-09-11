@@ -61,6 +61,11 @@ public final class BookMaker {
         return new BookBuilder();
     }
 
+    /**
+     * Method that open a book server side
+     * @param player the player
+     * @param book the itemStack
+     */
     public static void openBook(Player player, ItemStack book) {
         int slot = player.getInventory().getHeldItemSlot();
         ItemStack old = player.getInventory().getItem(slot);
@@ -69,7 +74,6 @@ public final class BookMaker {
         buf.setByte(0, (byte) 0);
         buf.writerIndex(1);
 
-        //get player handle
         Reflection.openBook(player, buf);
         player.getInventory().setItem(slot, old);
     }
