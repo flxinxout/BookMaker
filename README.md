@@ -18,12 +18,13 @@ All the parts of the book are created with the **Builder Design Pattern**. it me
 ```java
 BookBuilder book = BookMaker.build();
 ```
+<br>
 
 A `BookBuilder` is an inner class that represents the construction of the custom book. With this you can set the title, the author, add pages, etc. All you have to remember is to finish the construction with the method `.done()` to return an `ItemStack` at the end. Here is an example
 ```java
 ItemStack book = BookMaker.build().withTitle("§aWelcome").withAuthor("flxinxout").done();
 ```
-<br><br>
+<br>
 
 Now let's write some text into the book. For this, you have to use the inner class `TextBook.java`. It provides a builder like the `BookBuilder` but for the texts specifically. Like for the `BookBuilder`, you have to add at the end the `.done()` method to return a `BaseComponent`.
 ```java
@@ -31,7 +32,7 @@ BaseComponent text_one = TextBook.of("My First Text ! :)");
 // or for more details
 BaseComponent text_one = new TextBook().withText("Click here to go to my github page").withClick(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://google.com")).done();
 ```
-<br><br>
+<br>
 
 Now the last part is the `PageBook.java` inner class. Like the text builder, this class is the page builder of the custom book. It provides many methods to customize your future pages with `BaseComponent`. Here too we have to and with a `.done()` method to return a `BaseComponent[]` for after. To create a simple page we can do that
 ```java
@@ -39,7 +40,7 @@ BaseComponent[] page_one = PageBook.of("My first page (very simple with only one
 // or with more details
 BaseComponent[] page_one = new PageBook().with(new TextBook().withText("Click here to go to my github page").withColor().done()).done();
 ```
-<br><br>
+<br>
 
 Now here is a full custom book created with this API
 ```java
