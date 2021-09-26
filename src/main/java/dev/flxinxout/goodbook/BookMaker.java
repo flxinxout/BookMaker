@@ -31,9 +31,23 @@ import static org.bukkit.inventory.meta.BookMeta.Generation;
 public final class BookMaker {
 
     private static String versionName;
+    private static String NMS;
+
     private static Field craftBookMetaField;
     private static Method chatSerializer;
-    private static String NMS;
+    private static Class<?> packetDataSerializer;
+    private static Constructor<?> packetDataSerializerConstructor;
+    private static Class<?> packetPlayOutCustomPayload;
+    private static Class<?> minecraftKey;
+    private static Constructor<?> constructorKey;
+    private static Constructor<?> packetPlayOutCustomPayloadConstructor;
+
+    private static Class<?> packet;
+    private static Class<?> enumHand;
+    private static Class<?> packetClass;
+    private static Constructor<?> packetPlayOutOpenBook;
+    private static Constructor<?> packetPlayOutCustomPayloadConstructor_last;
+
     private static final boolean canChatColorBungee;
 
     static {
@@ -43,9 +57,31 @@ public final class BookMaker {
 
             versionName = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
             NMS = "net.minecraft.server." + versionName + ".";
+
             craftBookMetaField = Reflection.getField(Reflection.getClass("org.bukkit.craftbukkit." + versionName + ".inventory.CraftMetaBook"), "pages");
             Class<?> chatBase = Reflection.getClass(NMS + "IChatBaseComponent$ChatSerializer");
             chatSerializer = Reflection.getMethod(chatBase, "a", String.class);
+
+            if(versionName.equalsIgnoreCase("v1_13_r2")) {
+                packetDataSerializer = Reflection.getClass(NMS + "PacketDataSerializer");
+                packetDataSerializerConstructor = Reflection.getConstructor(packetDataSerializer, ByteBuf.class);
+                packetPlayOutCustomPayload = Reflection.getClass(NMS + "PacketPlayOutCustomPayload");
+                minecraftKey = Reflection.getClass(NMS + "MinecraftKey");
+                constructorKey = Reflection.getConstructor(minecraftKey, String.class);
+                packetPlayOutCustomPayloadConstructor = Reflection.getConstructor(packetPlayOutCustomPayload, minecraftKey, packetDataSerializer);
+            }
+
+            if(versionName.equalsIgnoreCase("v1_14_r1") || versionName.equalsIgnoreCase("v1_15_r1") || versionName.equalsIgnoreCase("v1_16_r3")) {
+                packet = Reflection.getClass(NMS + "Packet");
+                enumHand = Reflection.getClass(NMS + "EnumHand");
+                packetClass = Reflection.getClass(NMS + "PacketPlayOutOpenBook");
+                packetPlayOutOpenBook = Reflection.getConstructor(packetClass, enumHand);
+            }
+
+            if(versionName.equalsIgnoreCase("v1_8_r3") || versionName.equalsIgnoreCase("v1_9_r2") || versionName.equalsIgnoreCase("v1_10_r1") ||
+                    versionName.equalsIgnoreCase("v1_11_r1") || versionName.equalsIgnoreCase("v1_12_r1")) {
+                packetPlayOutCustomPayloadConstructor_last = Reflection.getConstructor(packetPlayOutCustomPayload, String.class, packetDataSerializer);
+            }
 
         } catch (BookException e) {
             e.printStackTrace();
@@ -572,23 +608,23 @@ public final class BookMaker {
                 if(versionName.equalsIgnoreCase("v1_13_r2")) {
 
                     // 1.13.2
-                    Class<?> packetDataSerializer = getClass(NMS + "PacketDataSerializer");
-                    Constructor<?> packetDataSerializerConstructor = getConstructor(packetDataSerializer, ByteBuf.class);
-                    Class<?> packetPlayOutCustomPayload = getClass(NMS + "PacketPlayOutCustomPayload");
-                    Class<?> minecraftKey = getClass(NMS + "MinecraftKey");
-                    Constructor<?> constructorKey = getConstructor(minecraftKey, String.class);
-                    Constructor<?> packetPlayOutCustomPayloadConstructor = getConstructor(packetPlayOutCustomPayload, minecraftKey, packetDataSerializer);
-                    connection.getClass().getMethod("sendPacket", Class.forName(NMS + "Packet")).invoke(connection, packetPlayOutCustomPayloadConstructor.newInstance(constructorKey.newInstance("minecraft:book_open"), packetDataSerializerConstructor.newInstance(buf)));
+                   // Class<?> packetDataSerializer = getClass(NMS + "PacketDataSerializer");
+                    //Constructor<?> packetDataSerializerConstructor = getConstructor(packetDataSerializer, ByteBuf.class);
+                    //Class<?> packetPlayOutCustomPayload = getClass(NMS + "PacketPlayOutCustomPayload");
+                    //Class<?> minecraftKey = getClass(NMS + "MinecraftKey");
+                    //Constructor<?> constructorKey = getConstructor(minecraftKey, String.class);
+                    //Constructor<?> packetPlayOutCustomPayloadConstructor = getConstructor(packetPlayOutCustomPayload, minecraftKey, packetDataSerializer);
+                    connection.getClass().getMethod("sendPacket", packet).invoke(connection, packetPlayOutCustomPayloadConstructor.newInstance(constructorKey.newInstance("minecraft:book_open"), packetDataSerializerConstructor.newInstance(buf)));
                     return;
                 }
 
-                if(versionName.equalsIgnoreCase("versionName") || versionName.equalsIgnoreCase("v1_14_r1") || versionName.equalsIgnoreCase("v1_15_r1")) {
+                if(versionName.equalsIgnoreCase("v1_14_r1") || versionName.equalsIgnoreCase("v1_15_r1") || versionName.equalsIgnoreCase("v1_16_r3")) {
                     // 1.14.4 - 1.16.5
-                    Class<?> packet = getClass(NMS + "Packet");
-                    Class<?> enumHand = getClass(NMS + "EnumHand");
+                    //Class<?> packet = getClass(NMS + "Packet");
+                    //Class<?> enumHand = getClass(NMS + "EnumHand");
                     Object[] enumArray = enumHand.getEnumConstants();
-                    Class<?> packetClass = getClass(NMS + "PacketPlayOutOpenBook");
-                    Constructor<?> packetPlayOutOpenBook = getConstructor(packetClass, enumHand);
+                   // Class<?> packetClass = getClass(NMS + "PacketPlayOutOpenBook");
+                    //Constructor<?> packetPlayOutOpenBook = getConstructor(packetClass, enumHand);
                     Object packetOpenBook = packetPlayOutOpenBook.newInstance(enumArray[0]);
                     connection.getClass().getMethod("sendPacket", packet).invoke(connection, packetOpenBook);
                     return;
@@ -598,15 +634,15 @@ public final class BookMaker {
                         versionName.equalsIgnoreCase("v1_11_r1") || versionName.equalsIgnoreCase("v1_12_r1")) {
 
                     // 1.8.9 - 1.9.4 - 1.10.2 - 1.11.2 - 1.12.2
-                    Class<?> packetDataSerializer = getClass(NMS + "PacketDataSerializer");
-                    Constructor<?> packetDataSerializerConstructor = getConstructor(packetDataSerializer, ByteBuf.class);
-                    Class<?> packetPlayOutCustomPayload = getClass(NMS + "PacketPlayOutCustomPayload");
-                    Constructor<?> packetPlayOutCustomPayloadConstructor = getConstructor(packetPlayOutCustomPayload, String.class, getClass(NMS + "PacketDataSerializer"));
-                    connection.getClass().getMethod("sendPacket", getClass(NMS + "Packet")).invoke(connection, packetPlayOutCustomPayloadConstructor.newInstance("MC|BOpen", packetDataSerializerConstructor.newInstance(buf)));
+                    //Class<?> packetDataSerializer = getClass(NMS + "PacketDataSerializer");
+                    //Constructor<?> packetDataSerializerConstructor = getConstructor(packetDataSerializer, ByteBuf.class);
+                   // Class<?> packetPlayOutCustomPayload = getClass(NMS + "PacketPlayOutCustomPayload");
+                    //Constructor<?> packetPlayOutCustomPayloadConstructor = getConstructor(packetPlayOutCustomPayload, String.class, getClass(NMS + "PacketDataSerializer"));
+                    connection.getClass().getMethod("sendPacket", packet).invoke(connection, packetPlayOutCustomPayloadConstructor_last.newInstance("MC|BOpen", packetDataSerializerConstructor.newInstance(buf)));
 
                 }
 
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | ClassNotFoundException | InstantiationException | BookException e) {
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | InstantiationException e) {
                 e.printStackTrace();
             }
         }
