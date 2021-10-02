@@ -38,7 +38,7 @@ Now the last part is the `PageBook.java` inner class. Like the text builder, thi
 ```java
 BaseComponent[] page_one = PageBook.of("My first page (very simple with only one string)").done();
 // or with more details
-BaseComponent[] page_one = new PageBook().with(new TextBook().withText("Click here to go to my github page").withColor().done()).done();
+BaseComponent[] page_one = new PageBook().with(new TextBook().withText("Click here to go to my github page").withColor(ChatColor.BLUE).done()).done();
 ```
 <br>
 
